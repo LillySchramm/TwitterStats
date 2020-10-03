@@ -1,21 +1,20 @@
 import requests
 import os
 import json
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import time
 from datetime import datetime
+import io
 import threading
 from collections import OrderedDict
 from emoji import UNICODE_EMOJI
 
-webServer = 0
-hostName = "localhost"
-serverPort = 80
 website = ""
 startTime = 0
 currentTime = 0
 lastMin = -1
-startMin = 0;
+startMin = 0
+
+lol = 0
 
 # Stats
 
@@ -40,60 +39,61 @@ back_emoji = dict()
 for_emoji = dict()
 
 
-class MyServer(BaseHTTPRequestHandler):
-    def do_GET(self):
-        global website, lastTweet, currentTime
+def regenWebsite(out_file):
+    global website, lastTweet, currentTime, lol
 
-        getWebsite("index.html")
+    getWebsite("index.html")
 
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
+    website_copy = website
+    currentTime = int(time.time())
 
-        website_copy = website
-        currentTime = int(time.time())
+    now = dateTimeObj = datetime.now()
 
-        top20 = ""
-        top20t = ""
-        top20e = ""
-        i = 0
+    top20 = ""
+    top20t = ""
+    top20e = ""
+    i = 0
 
-        for k, v in for_hashtags.items():
-            i += 1
-            top20 += '"' + str(k) + '" : ' + str(v) + '<br>'
-            if i >= 20:
-                break
+    for k, v in for_hashtags.items():
+        i += 1
+        top20 += '"' + str(k) + '" : ' + str(v) + ' per hour<br>'
 
-        i = 0
+        if i >= 50:
+            break
 
-        for k, v in for_tag.items():
-            i += 1
-            top20t += '"' + str(k) + '" : ' + str(v) + '<br>'
-            if i >= 20:
-                break
+    i = 0
 
-        i = 0
+    for k, v in for_tag.items():
+        i += 1
+        top20t += '"' + str(k) + '" : ' + str(v) + '<br>'
 
-        for k, v in for_emoji.items():
-            i += 1
-            top20e += '"' + str(k) + '" : ' + str(v) + '<br>'
-            if i >= 20:
-                break
+        if i >= 50:
+            break
 
-        website_copy = website_copy.replace("$lastTweet$", lastTweet)
-        website_copy = website_copy.replace("$upTime$", str(int(getCurrentDelta() / 60)))
-        website_copy = website_copy.replace("$num_tweets$", str(countTweets))
-        website_copy = website_copy.replace("$num_re_tweets$", str(countReTweets))
-        website_copy = website_copy.replace("$num_hashtags$", str(countHashtags))
-        website_copy = website_copy.replace("$num_emoji$", str(countEmoji))
-        website_copy = website_copy.replace("$num_tag$", str(countTags))
-        website_copy = website_copy.replace("$top20Hashtags$", top20)
-        website_copy = website_copy.replace("$top20tag$", top20t)
-        website_copy = website_copy.replace("$top20emoji$", top20e)
+    i = 0
 
-        for line in website_copy.split("\n"):
-            self.wfile.write(
-                bytes(line + "\n", "utf-8"))
+    for k, v in for_emoji.items():
+        i += 1
+        top20e += '"' + str(k) + '" : ' + str(v) + '<br>'
+
+        if i >= 50:
+            break
+
+    website_copy = website_copy.replace("$lastTweet$", lastTweet)
+    website_copy = website_copy.replace("$upTime$", str(int(getCurrentDelta() / 60)))
+    website_copy = website_copy.replace("$num_tweets$", str(countTweets))
+    website_copy = website_copy.replace("$num_re_tweets$", str(countReTweets))
+    website_copy = website_copy.replace("$num_hashtags$", str(countHashtags))
+    website_copy = website_copy.replace("$num_emoji$", str(countEmoji))
+    website_copy = website_copy.replace("$num_tag$", str(countTags))
+    website_copy = website_copy.replace("$top20Hashtags$", top20)
+    website_copy = website_copy.replace("$top20tag$", top20t)
+    website_copy = website_copy.replace("$top20emoji$", top20e)
+
+    with io.open("/var/www/html/" + out_file, 'w', encoding='utf8') as f:
+        f.write(website_copy)
+
+        f.close()
 
 
 def getCurrentDelta():
@@ -106,13 +106,6 @@ def getWebsite(url):
     f = open(url, "r")
     website = f.read()
     f.close()
-
-
-def runServer():
-    try:
-        webServer.serve_forever()
-    except KeyboardInterrupt:
-        pass
 
 
 def handleTweet(tweet):
@@ -172,19 +165,22 @@ def create_headers(bearer_token):
 
 
 def connect_to_endpoint(url, headers):
-    response = requests.request("GET", url, headers=headers, stream=True)
+    try:
+        response = requests.request("GET", url, headers=headers, stream=True)
+        print(response.status_code)
+        for response_line in response.iter_lines():
+            if response_line:
+                json_response = json.loads(response_line)
+                threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
 
-    for response_line in response.iter_lines():
-        if response_line:
-            json_response = json.loads(response_line)
-            threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
-
-    if response.status_code != 200:
-        raise Exception(
-            "Request returned an error: {} {}".format(
-                response.status_code, response.text
+        if response.status_code != 200:
+            raise Exception(
+                "Request returned an error: {} {}".format(
+                    response.status_code, response.text
+                )
             )
-        )
+    except:
+        pass
 
 
 def main():
@@ -193,12 +189,10 @@ def main():
     url = create_url()
     headers = create_headers(bearer_token)
     timeout = 0
-    x = threading.Thread(target=runServer)
+    x = threading.Thread(target=updateDicts)
     x.start()
-    xx = threading.Thread(target=updateDicts)
-    xx.start()
 
-    print("Server started http://%s:%s" % (hostName, serverPort))
+    print("Server started")
 
     while True:
         connect_to_endpoint(url, headers)
@@ -231,6 +225,8 @@ def updateDicts():
         for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
         for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
         for_emoji = OrderedDict(sorted(back_emoji.items(), key=lambda x: x[1], reverse=True))
+
+        regenWebsite("index.html")
 
         now = datetime.now()
 
@@ -267,11 +263,54 @@ def updateDicts():
 
             print("Min reset " + str(now.minute))
 
+            for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
+            for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
+            for_emoji = OrderedDict(sorted(back_emoji.items(), key=lambda x: x[1], reverse=True))
+
+            i = 0
+            with io.open("/var/www/html/hashtags.txt", 'a+', encoding='utf8') as f:
+                f.write("\n")
+                f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
+                    now.minute))
+                f.write("\n")
+                for k, v in for_tag.items():
+                    i += 1
+                    f.write(str(k) + '::' + str(v) + "\n")
+                    if i >= 50:
+                        break
+
+                f.close()
+            i=0
+            with io.open("/var/www/html/tags.txt", 'a+', encoding='utf8') as f:
+                f.write("\n")
+                f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
+                    now.minute))
+                f.write("\n")
+                for k, v in for_tag.items():
+                    i += 1
+                    f.write(str(k) + '::' + str(v) + "\n")
+                    if i >= 50:
+                        break
+
+                f.close()
+            i=0
+            with io.open("/var/www/html/emoji.txt", 'a+', encoding='utf8') as f:
+                f.write("\n")
+                f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
+                    now.minute))
+                f.write("\n")
+                for k, v in for_emoji.items():
+                    i += 1
+                    f.write(str(k) + '::' + str(v) + "\n")
+                    if i >= 50:
+                        break
+
+                f.close()
+
         time.sleep(1)
 
 
 if __name__ == "__main__":
-    webServer = HTTPServer((hostName, serverPort), MyServer)
     getWebsite("index.html")
     startTime = int(time.time())
 
