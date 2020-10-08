@@ -14,8 +14,6 @@ currentTime = 0
 lastMin = -1
 startMin = 0
 
-lol = 0
-
 # Stats
 
 lastTweet = ""
@@ -49,14 +47,14 @@ def regenWebsite(out_file):
 
     now = dateTimeObj = datetime.now()
 
-    top20 = ""
-    top20t = ""
-    top20e = ""
+    toph = ""
+    topt = ""
+    tope = ""
     i = 0
 
     for k, v in for_hashtags.items():
         i += 1
-        top20 += '"' + str(k) + '" : ' + str(v) + ' per hour<br>'
+        toph += '"' + str(k) + '" : ' + str(v) + ' per hour<br>'
 
         if i >= 50:
             break
@@ -65,7 +63,7 @@ def regenWebsite(out_file):
 
     for k, v in for_tag.items():
         i += 1
-        top20t += '"' + str(k) + '" : ' + str(v) + '<br>'
+        topt += '"' + str(k) + '" : ' + str(v) + '<br>'
 
         if i >= 50:
             break
@@ -74,7 +72,7 @@ def regenWebsite(out_file):
 
     for k, v in for_emoji.items():
         i += 1
-        top20e += '"' + str(k) + '" : ' + str(v) + '<br>'
+        tope += '"' + str(k) + '" : ' + str(v) + '<br>'
 
         if i >= 50:
             break
@@ -86,9 +84,9 @@ def regenWebsite(out_file):
     website_copy = website_copy.replace("$num_hashtags$", str(countHashtags))
     website_copy = website_copy.replace("$num_emoji$", str(countEmoji))
     website_copy = website_copy.replace("$num_tag$", str(countTags))
-    website_copy = website_copy.replace("$top20Hashtags$", top20)
-    website_copy = website_copy.replace("$top20tag$", top20t)
-    website_copy = website_copy.replace("$top20emoji$", top20e)
+    website_copy = website_copy.replace("$topHashtags$", toph)
+    website_copy = website_copy.replace("$topTag$", topt)
+    website_copy = website_copy.replace("$topEmoji$", tope)
 
     with io.open("/var/www/html/" + out_file, 'w', encoding='utf8') as f:
         f.write(website_copy)
@@ -165,13 +163,16 @@ def create_headers(bearer_token):
 
 
 def connect_to_endpoint(url, headers):
-    try:
+
         response = requests.request("GET", url, headers=headers, stream=True)
         print(response.status_code)
         for response_line in response.iter_lines():
             if response_line:
-                json_response = json.loads(response_line)
-                threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
+                if b"data" in response_line:
+                    json_response = json.loads(response_line)
+                    threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
+                else:
+                    time.sleep(20)
 
         if response.status_code != 200:
             raise Exception(
@@ -179,8 +180,8 @@ def connect_to_endpoint(url, headers):
                     response.status_code, response.text
                 )
             )
-    except:
-        pass
+
+
 
 
 def main():
