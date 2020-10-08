@@ -8,6 +8,8 @@ import threading
 from collections import OrderedDict
 from emoji import UNICODE_EMOJI
 
+KEY = ""
+
 website = ""
 startTime = 0
 currentTime = 0
@@ -150,7 +152,7 @@ def handleTweet(tweet):
 
 
 def auth():
-    return "AAAAAAAAAAAAAAAAAAAAAD0MGwEAAAAA9bKsrZqMy%2FbuPSgEHGWObQV7itU%3DeGbT5B29p19id5aOHwkUFPpc4EpAXvcDbGWdKYg5OgsFSqdn7c"
+    return KEY
 
 
 def create_url():
