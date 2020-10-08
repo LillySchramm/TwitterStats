@@ -5,7 +5,7 @@ A fully automated twitter-trend tool.
 ## How does it work?
 
 The twitter-api has an feature called "Sampled Stream". That means that you get a small live portion of, if you can trust the documentation, ca. 1% of all tweets pushed to twitter. 
-This allows us to get a good overview of the current situation on twitter. All Hashtags, Tags and Emoji are relevant bc. everything that we can find, in a sampled stream, multiple in one hour of is probably relevant.
+This allows us to get a good overview of the current situation on twitter. All Hashtags, Tags and Emoji are relevant bc. everything that we can find, in a sampled stream, multiple in one hour is probably relevant.
 These trends and other stats then replace placeholders on a HTML file that then gets copied to the /www/ of an apache2 server. It also saves the top 200 in a list every minute.
 
 ## Setup
