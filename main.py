@@ -165,25 +165,22 @@ def create_headers(bearer_token):
 
 
 def connect_to_endpoint(url, headers):
+    response = requests.request("GET", url, headers=headers, stream=True)
+    print(response.status_code)
+    for response_line in response.iter_lines():
+        if response_line:
+            if b"data" in response_line:
+                json_response = json.loads(response_line)
+                threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
+            else:
+                time.sleep(20)
 
-        response = requests.request("GET", url, headers=headers, stream=True)
-        print(response.status_code)
-        for response_line in response.iter_lines():
-            if response_line:
-                if b"data" in response_line:
-                    json_response = json.loads(response_line)
-                    threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
-                else:
-                    time.sleep(20)
-
-        if response.status_code != 200:
-            raise Exception(
-                "Request returned an error: {} {}".format(
-                    response.status_code, response.text
-                )
+    if response.status_code != 200:
+        raise Exception(
+            "Request returned an error: {} {}".format(
+                response.status_code, response.text
             )
-
-
+        )
 
 
 def main():
@@ -223,7 +220,7 @@ def addToCurrentMinute(type, content):
 
 
 def updateDicts():
-    global back_hashtags, for_hashtags, for_tag, for_emoji, now, lastMin
+    global back_hashtags, back_tag, back_emoji, for_hashtags, for_tag, for_emoji, now, lastMin
     while True:
         for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
         for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
@@ -238,33 +235,43 @@ def updateDicts():
 
             rem = 0
 
-            for k, v in mins_hashtags[now.minute].items():
-                back_hashtags[k] = back_hashtags[k] - v
-                rem += 1
-                if back_hashtags[k] < 0:
-                    back_hashtags[k] = 0
+            temp = back_hashtags
+            temp_min = mins_hashtags[now.minute].items()
 
-            print(str(rem) + " hashtags korrigiert")
+            for k, v in temp_min:
+                temp[k] = temp[k] - v
+                rem += 1
+                if temp[k] < 0:
+                    temp[k] = 0
+
+            back_hashtags = temp
 
             rem = 0
-            for k, v in mins_tag[now.minute].items():
-                back_tag[k] = back_tag[k] - v
+
+            temp = back_tag
+            temp_min = mins_tag[now.minute].items()
+
+            for k, v in temp_min:
+                temp[k] = temp[k] - v
                 rem += 1
-                if back_tag[k] < 0:
-                    back_tag[k] = 0
+                if temp[k] < 0:
+                    temp[k] = 0
 
-            print(str(rem) + " tags korrigiert")
+            back_tag = temp
 
-            for k, v in mins_emoji[now.minute].items():
-                back_emoji[k] = back_emoji[k] - v
-                if back_emoji[k] < 0:
-                    back_emoji[k] = 0
+            temp = back_emoji
+            temp_min = mins_emoji[now.minute].items()
+
+            for k, v in temp_min:
+                temp[k] = temp[k] - v
+                if temp[k] < 0:
+                    temp[k] = 0
+
+            back_emoji = temp
 
             mins_emoji[now.minute] = dict()
             mins_tag[now.minute] = dict()
             mins_hashtags[now.minute] = dict()
-
-            print("Min reset " + str(now.minute))
 
             for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
             for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
@@ -283,7 +290,7 @@ def updateDicts():
                         break
 
                 f.close()
-            i=0
+            i = 0
             with io.open("/var/www/html/tags.txt", 'a+', encoding='utf8') as f:
                 f.write("\n")
                 f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
@@ -296,7 +303,7 @@ def updateDicts():
                         break
 
                 f.close()
-            i=0
+            i = 0
             with io.open("/var/www/html/emoji.txt", 'a+', encoding='utf8') as f:
                 f.write("\n")
                 f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
