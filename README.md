@@ -53,7 +53,14 @@ You can customize the website shown however you like! Even while the script is r
 | $topHashtags$  | Show the current top 50 Hashtags  |
 | $topTag$  | Show the current top 50 Tags  |
 | $topEmoji$  | Show the current top 50 Emoji  |
-     
+
+## Get my lists
+
+If you want the lists I generated over the time Im running this script just use ```wget <address>```.
+
+Tags: ```http://twitterstats.eps-dev.de/tags.txt```<br>
+Hashtags: ```http://twitterstats.eps-dev.de/hashtags.txt``` <br>
+Emoji: ```http://twitterstats.eps-dev.de/emoji.txt```
 
 
     
