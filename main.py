@@ -7,6 +7,7 @@ import io
 import threading
 from collections import OrderedDict
 from emoji import UNICODE_EMOJI
+from http.client import IncompleteRead
 
 KEY = ""
 
@@ -167,13 +168,18 @@ def create_headers(bearer_token):
 def connect_to_endpoint(url, headers):
     response = requests.request("GET", url, headers=headers, stream=True)
     print(response.status_code)
-    for response_line in response.iter_lines():
-        if response_line:
-            if b"data" in response_line:
-                json_response = json.loads(response_line)
-                threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
-            else:
-                time.sleep(20)
+    try:
+        for response_line in response.iter_lines():
+            if response_line:
+
+                if b"data" in response_line:
+                    json_response = json.loads(response_line)
+                    threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
+                else:
+                    time.sleep(20)
+
+    except IncompleteRead:
+        time.sleep(20)
 
     if response.status_code != 200:
         raise Exception(
