@@ -1,5 +1,5 @@
 import requests
-import os
+import os.path
 import json
 import time
 from datetime import datetime
@@ -8,8 +8,12 @@ import threading
 from collections import OrderedDict
 from emoji import UNICODE_EMOJI
 from http.client import IncompleteRead
+import schedule
+import pickle
 
 KEY = ""
+OUTPUT_DIR = "/var/www/html/"
+#OUTPUT_DIR = "www/"
 
 website = ""
 startTime = 0
@@ -39,6 +43,63 @@ for_tag = dict()
 back_emoji = dict()
 for_emoji = dict()
 
+online = True
+
+
+def loadState():
+    global back_hashtags, back_tag, back_emoji, startTime, mins_tag, mins_hashtags, mins_emoji
+
+    with open('state.pkl', 'rb') as f:
+        startTime = pickle.load(f)
+        f.close()
+
+    with open('data/back_tag.pkl', 'rb') as f:
+        back_tag = pickle.load(f)
+        f.close()
+    with open('data/back_hashtags.pkl', 'rb') as f:
+        back_hashtags = pickle.load(f)
+        f.close()
+    with open('data/back_emoji.pkl', 'rb') as f:
+        back_emoji = pickle.load(f)
+        f.close()
+
+    with open('data/mins_tag.pkl', 'rb') as f:
+        mins_tag = pickle.load(f)
+        f.close()
+    with open('data/mins_hashtags.pkl', 'rb') as f:
+        mins_hashtags = pickle.load(f)
+        f.close()
+    with open('data/mins_emoji.pkl', 'rb') as f:
+        mins_emoji = pickle.load(f)
+        f.close()
+
+def saveState():
+    try:
+        with open('state.pkl', 'wb') as f:
+            pickle.dump(startTime, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
+        with open('data/back_tag.pkl', 'wb') as f:
+            pickle.dump(back_tag, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('data/back_hashtags.pkl', 'wb') as f:
+            pickle.dump(back_hashtags, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('data/back_emoji.pkl', 'wb') as f:
+            pickle.dump(back_emoji, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
+        with open('data/mins_emoji.pkl', 'wb') as f:
+            pickle.dump(mins_emoji, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('data/mins_tag.pkl', 'wb') as f:
+            pickle.dump(mins_tag, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('data/mins_hashtags.pkl', 'wb') as f:
+            pickle.dump(mins_hashtags, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+    except:
+        exit()
 
 def regenWebsite(out_file):
     global website, lastTweet, currentTime, lol
@@ -91,7 +152,7 @@ def regenWebsite(out_file):
     website_copy = website_copy.replace("$topTag$", topt)
     website_copy = website_copy.replace("$topEmoji$", tope)
 
-    with io.open("/var/www/html/" + out_file, 'w', encoding='utf8') as f:
+    with io.open(OUTPUT_DIR + out_file, 'w', encoding='utf8') as f:
         f.write(website_copy)
 
         f.close()
@@ -145,9 +206,9 @@ def handleTweet(tweet):
                         else:
                             back_emoji[char] = 1
 
-
     else:
         countReTweets += 1
+
 
     countTweets += 1
 
@@ -166,28 +227,28 @@ def create_headers(bearer_token):
 
 
 def connect_to_endpoint(url, headers):
-    response = requests.request("GET", url, headers=headers, stream=True)
-    print(response.status_code)
+    global online
     try:
+        response = requests.request("GET", url, headers=headers, stream=True)
+        print(response.status_code)
         for response_line in response.iter_lines():
             if response_line:
-
                 if b"data" in response_line:
                     json_response = json.loads(response_line)
                     threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
-                else:
-                    time.sleep(20)
+                    schedule.run_pending()
 
-    except IncompleteRead:
-        time.sleep(20)
 
-    if response.status_code != 200:
-        raise Exception(
-            "Request returned an error: {} {}".format(
-                response.status_code, response.text
-            )
-        )
 
+
+            if response.status_code != 200:
+                raise Exception(
+                    "Request returned an error: {} {}".format(
+                        response.status_code, response.text
+                    )
+                )
+    except:
+        exit()
 
 def main():
     global currentTime
@@ -195,14 +256,11 @@ def main():
     url = create_url()
     headers = create_headers(bearer_token)
     timeout = 0
-    x = threading.Thread(target=updateDicts)
-    x.start()
 
     print("Server started")
+    schedule.every().second.do(updateDicts)
+    connect_to_endpoint(url, headers)
 
-    while True:
-        connect_to_endpoint(url, headers)
-        timeout += 1
 
 
 def addToCurrentMinute(type, content):
@@ -227,116 +285,119 @@ def addToCurrentMinute(type, content):
 
 def updateDicts():
     global back_hashtags, back_tag, back_emoji, for_hashtags, for_tag, for_emoji, now, lastMin
-    while True:
+
+    for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
+    for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
+    for_emoji = OrderedDict(sorted(back_emoji.items(), key=lambda x: x[1], reverse=True))
+
+    regenWebsite("index.html")
+
+    now = datetime.now()
+
+    if now.minute != lastMin:
+        saveState()
+        lastMin = now.minute
+
+        rem = 0
+
+        temp = back_hashtags
+        temp_min = mins_hashtags[now.minute].items()
+
+        for k, v in temp_min:
+            temp[k] = temp[k] - v
+            rem += 1
+            if temp[k] < 0:
+                temp[k] = 0
+
+        back_hashtags = temp
+
+        rem = 0
+
+        temp = back_tag
+        temp_min = mins_tag[now.minute].items()
+
+        for k, v in temp_min:
+            temp[k] = temp[k] - v
+            rem += 1
+            if temp[k] < 0:
+                temp[k] = 0
+
+        back_tag = temp
+
+        temp = back_emoji
+        temp_min = mins_emoji[now.minute].items()
+
+        for k, v in temp_min:
+            temp[k] = temp[k] - v
+            if temp[k] < 0:
+                temp[k] = 0
+
+        back_emoji = temp
+
+        mins_emoji[now.minute] = dict()
+        mins_tag[now.minute] = dict()
+        mins_hashtags[now.minute] = dict()
+
         for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
         for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
         for_emoji = OrderedDict(sorted(back_emoji.items(), key=lambda x: x[1], reverse=True))
 
-        regenWebsite("index.html")
+        i = 0
+        with io.open(OUTPUT_DIR + "hashtags.txt", 'a+', encoding='utf8') as f:
+            f.write("\n")
+            f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
+                now.minute))
+            f.write("\n")
+            for k, v in for_tag.items():
+                i += 1
+                f.write(str(k) + '::' + str(v) + "\n")
+                if i >= 50:
+                    break
 
-        now = datetime.now()
+            f.close()
+        i = 0
+        with io.open(OUTPUT_DIR + "tags.txt", 'a+', encoding='utf8') as f:
+            f.write("\n")
+            f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
+                now.minute))
+            f.write("\n")
+            for k, v in for_tag.items():
+                i += 1
+                f.write(str(k) + '::' + str(v) + "\n")
+                if i >= 50:
+                    break
 
-        if now.minute != lastMin:
-            lastMin = now.minute
+            f.close()
+        i = 0
+        with io.open(OUTPUT_DIR + "emoji.txt", 'a+', encoding='utf8') as f:
+            f.write("\n")
+            f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
+                now.minute))
+            f.write("\n")
+            for k, v in for_emoji.items():
+                i += 1
+                f.write(str(k) + '::' + str(v) + "\n")
+                if i >= 50:
+                    break
 
-            rem = 0
+            f.close()
 
-            temp = back_hashtags
-            temp_min = mins_hashtags[now.minute].items()
 
-            for k, v in temp_min:
-                temp[k] = temp[k] - v
-                rem += 1
-                if temp[k] < 0:
-                    temp[k] = 0
-
-            back_hashtags = temp
-
-            rem = 0
-
-            temp = back_tag
-            temp_min = mins_tag[now.minute].items()
-
-            for k, v in temp_min:
-                temp[k] = temp[k] - v
-                rem += 1
-                if temp[k] < 0:
-                    temp[k] = 0
-
-            back_tag = temp
-
-            temp = back_emoji
-            temp_min = mins_emoji[now.minute].items()
-
-            for k, v in temp_min:
-                temp[k] = temp[k] - v
-                if temp[k] < 0:
-                    temp[k] = 0
-
-            back_emoji = temp
-
-            mins_emoji[now.minute] = dict()
-            mins_tag[now.minute] = dict()
-            mins_hashtags[now.minute] = dict()
-
-            for_hashtags = OrderedDict(sorted(back_hashtags.items(), key=lambda x: x[1], reverse=True))
-            for_tag = OrderedDict(sorted(back_tag.items(), key=lambda x: x[1], reverse=True))
-            for_emoji = OrderedDict(sorted(back_emoji.items(), key=lambda x: x[1], reverse=True))
-
-            i = 0
-            with io.open("/var/www/html/hashtags.txt", 'a+', encoding='utf8') as f:
-                f.write("\n")
-                f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
-                    now.minute))
-                f.write("\n")
-                for k, v in for_tag.items():
-                    i += 1
-                    f.write(str(k) + '::' + str(v) + "\n")
-                    if i >= 50:
-                        break
-
-                f.close()
-            i = 0
-            with io.open("/var/www/html/tags.txt", 'a+', encoding='utf8') as f:
-                f.write("\n")
-                f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
-                    now.minute))
-                f.write("\n")
-                for k, v in for_tag.items():
-                    i += 1
-                    f.write(str(k) + '::' + str(v) + "\n")
-                    if i >= 50:
-                        break
-
-                f.close()
-            i = 0
-            with io.open("/var/www/html/emoji.txt", 'a+', encoding='utf8') as f:
-                f.write("\n")
-                f.write(str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour) + ":" + str(
-                    now.minute))
-                f.write("\n")
-                for k, v in for_emoji.items():
-                    i += 1
-                    f.write(str(k) + '::' + str(v) + "\n")
-                    if i >= 50:
-                        break
-
-                f.close()
-
-        time.sleep(1)
 
 
 if __name__ == "__main__":
     getWebsite("index.html")
-    startTime = int(time.time())
+
+    if os.path.isfile("state.txt"):
+        loadState()
+    else:
+        startTime = int(time.time())
+
+        for i in range(0, 60):
+            mins_tag[i] = dict()
+            mins_hashtags[i] = dict()
+            mins_emoji[i] = dict()
 
     now = datetime.now()
-
     lastMin = now.minute
-
-    for i in range(0, 60):
-        mins_tag[i] = dict()
-        mins_hashtags[i] = dict()
-        mins_emoji[i] = dict()
-
     main()
