@@ -47,10 +47,25 @@ online = True
 
 
 def loadState():
-    global back_hashtags, back_tag, back_emoji, startTime, mins_tag, mins_hashtags, mins_emoji
+    global back_hashtags, back_tag, back_emoji, startTime, mins_tag, mins_hashtags, mins_emoji, countTweets, countReTweets, countTags, countHashtags, countEmoji
 
     with open('state.pkl', 'rb') as f:
         startTime = pickle.load(f)
+        f.close()
+    with open('countTweets.pkl', 'rb') as f:
+        countTweets = pickle.load(f)
+        f.close()
+    with open('countRetweets.pkl', 'rb') as f:
+        countReTweets = pickle.load(f)
+        f.close()
+    with open('countTags.pkl', 'rb') as f:
+        countTags = pickle.load(f)
+        f.close()
+    with open('countHashtags.pkl', 'rb') as f:
+        countHashtags = pickle.load(f)
+        f.close()
+    with open('countEmoji.pkl', 'rb') as f:
+        countEmoji = pickle.load(f)
         f.close()
 
     with open('data/back_tag.pkl', 'rb') as f:
@@ -78,6 +93,23 @@ def saveState():
         with open('state.pkl', 'wb') as f:
             pickle.dump(startTime, f, pickle.HIGHEST_PROTOCOL)
             f.close()
+
+        with open('countTweets.pkl', 'wb') as f:
+            pickle.dump(countTweets, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('countRetweets.pkl', 'wb') as f:
+            pickle.dump(countReTweets, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('countTags.pkl', 'wb') as f:
+            pickle.dump(countTags, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('countHashtags.pkl', 'wb') as f:
+            pickle.dump(countHashtags, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+        with open('countEmoji.pkl', 'wb') as f:
+            pickle.dump(countEmoji, f, pickle.HIGHEST_PROTOCOL)
+            f.close()
+
 
         with open('data/back_tag.pkl', 'wb') as f:
             pickle.dump(back_tag, f, pickle.HIGHEST_PROTOCOL)
