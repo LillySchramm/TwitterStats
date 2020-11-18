@@ -130,6 +130,8 @@ def saveState():
         with open('data/mins_hashtags.pkl', 'wb') as f:
             pickle.dump(mins_hashtags, f, pickle.HIGHEST_PROTOCOL)
             f.close()
+
+        outPrint("Saved state!")
     except:
         exit()
 
@@ -415,16 +417,19 @@ def updateDicts():
             f.close()
 
 
-
+def outPrint(str):
+    print("{} ".format(now.time()) + str)
 
 if __name__ == "__main__":
     getWebsite("index.html")
-
-    if os.path.isfile("state.txt"):
+    now = datetime.now()
+    if os.path.isfile("state.pkl"):
+        outPrint("Loading old state")
         loadState()
+
     else:
         startTime = int(time.time())
-
+        outPrint("Creating new state")
         for i in range(0, 60):
             mins_tag[i] = dict()
             mins_hashtags[i] = dict()

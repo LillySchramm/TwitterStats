@@ -1,3 +1,3 @@
 while true; do
-    python3 /home/twitter/main.py
+    python3 /home/TwitterStats/main.py
 done
