@@ -17,7 +17,7 @@ You want to setup this script yourself? Do so! Here you can find anything you ne
 You need a few thing before you start. <br>
 
 1. Python3 and PIP3 is required to run this script <br>
-2. The "Emoji" Library is required. ```pip3 install emoji```
+2. The "Emoji", "Schedule" and "Requests" Libraries are required. ```pip3 install emoji && pip3 install requests && pip3 install schedule```
 3. An installation of Apache2. ```apt-get install apache2``` 
 4. Screen so we can run the script in the background. ```apt-get install screen``` 
 5. A texteditor. I'm using nano. ```apt-get install nano``` 
@@ -30,12 +30,13 @@ Note: You can use any webserver you want.
 2. Edit "main.py" ```nano main.py``` 
     - Change the "KEY" variable to your BAERER TOKEN
     - Save the file
-3. Edit "start.sh"
+3. Edit "start.sh" and "run.sh"
     - Change the directory to the one you cloned to
     - Save the file
-4. Make "start.sh" executable. ```chmod +x start.sh```
-5. Run it! ```./start.sh```
-6. You are done and if anything is configured correctly you should see the a website when calling your server.
+4. Make "start.sh" and "run.sh" executable. ```chmod +x start.sh run.sh```
+5. Move my stylesheet to the web directory. ``` mv test.css /var/www/html/```
+6. Run it! ```./start.sh```
+7. You are done and if anything is configured correctly you should see the a website when calling your server.
 
 #### Website
 
