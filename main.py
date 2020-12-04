@@ -112,13 +112,13 @@ def saveState():
 
 
         with open('data/back_tag.pkl', 'wb') as f:
-            pickle.dump(back_tag, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(for_tag, f, pickle.HIGHEST_PROTOCOL)
             f.close()
         with open('data/back_hashtags.pkl', 'wb') as f:
-            pickle.dump(back_hashtags, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(for_hashtags, f, pickle.HIGHEST_PROTOCOL)
             f.close()
         with open('data/back_emoji.pkl', 'wb') as f:
-            pickle.dump(back_emoji, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(for_emoji, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
         with open('data/mins_emoji.pkl', 'wb') as f:
