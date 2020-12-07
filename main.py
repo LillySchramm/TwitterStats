@@ -41,16 +41,16 @@ MSQL_CONNECTION.autocommit(True)
 MSQL_CURSOR = MSQL_CONNECTION.cursor()
 
 date = ""
-lastdate = ""
+lastdate = "UwU"
 
 def createTable(db, name):
     global  MSQL_CURSOR, date;
-    MSQL_CURSOR.execute(DATABASE_TABLE_DEFAULTS[db].replace("%date%",date))
+    MSQL_CURSOR.execute(DATABASE_TABLE_DEFAULTS[db].replace("$date$",date))
 
 def checkTable(db, table_name):
     global MSQL_CURSOR
-
     MSQL_CURSOR.execute("SELECT * FROM INFORMATION_SCHEMA.TABLES where TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = '"+table_name+"'")
+
     lst = MSQL_CURSOR.fetchall()
 
     if not (lst == [] or lst == ()):
@@ -130,26 +130,26 @@ def addEntry(type, content):
     try:
         now = datetime.now()
         if type == "hashtag":
-            MSQL_CURSOR.execute("SELECT ID,NAME FROM `eps_hashtags`.`eps_hashtags` WHERE `DATE` = '"+str(date)+"' AND `NAME` = '"+content+"';")
+            MSQL_CURSOR.execute("SELECT ID,NAME FROM `eps_hashtags`.`hashtags_"+date+"` WHERE `DATE` = '"+str(date)+"' AND `NAME` = '"+content+"';")
             lst = MSQL_CURSOR.fetchall()
 
             if lst == [] or lst == ():
-                MSQL_CURSOR.execute("INSERT INTO `eps_hashtags`.`eps_hashtags` (`ID`, `NAME`, `DATE`, `COUNT`) VALUES (NULL, '"+content+"', '"+str(date)+"', '1');")
+                MSQL_CURSOR.execute("INSERT INTO `eps_hashtags`.`hashtags_"+date+"` (`ID`, `NAME`, `DATE`, `COUNT`) VALUES (NULL, '"+content+"', '"+str(date)+"', '1');")
             else:
-                MSQL_CURSOR.execute("UPDATE `eps_hashtags`.`eps_hashtags` SET `COUNT`= `COUNT` + 1 WHERE `ID` = '" + str(lst[0][0]) + "';")
+                MSQL_CURSOR.execute("UPDATE `eps_hashtags`.`hashtags_"+date+"` SET `COUNT`= `COUNT` + 1 WHERE `ID` = '" + str(lst[0][0]) + "';")
 
         else:
-            MSQL_CURSOR.execute("SELECT ID,NAME FROM `eps_tags`.`eps_tags` WHERE `DATE` = '" + str(
+            MSQL_CURSOR.execute("SELECT ID,NAME FROM `eps_tags`.`tags_"+date+"` WHERE `DATE` = '" + str(
                 date) + "' AND `NAME` = '" + content + "';")
             lst = MSQL_CURSOR.fetchall()
 
             if lst == [] or lst == ():
                 MSQL_CURSOR.execute(
-                    "INSERT INTO `eps_tags`.`eps_tags` (`ID`, `NAME`, `DATE`, `COUNT`) VALUES (NULL, '" + content + "', '" + str(
+                    "INSERT INTO `eps_tags`.`tags_"+date+"` (`ID`, `NAME`, `DATE`, `COUNT`) VALUES (NULL, '" + content + "', '" + str(
                         date) + "', '1');")
             else:
                 MSQL_CURSOR.execute(
-                    "UPDATE `eps_tags`.`eps_tags` SET `COUNT`= `COUNT` + 1 WHERE `ID` = '" + str(lst[0][0]) + "';")
+                    "UPDATE `eps_tags`.`tags_"+date+"` SET `COUNT`= `COUNT` + 1 WHERE `ID` = '" + str(lst[0][0]) + "';")
 
     except:
         pass
@@ -166,7 +166,7 @@ def create_headers(bearer_token):
 
 def connect_to_endpoint(url, headers):
     global online
-
+    checkDate()
     response = requests.request("GET", url, headers=headers, stream=True)
     print(response.status_code)
     for response_line in response.iter_lines():
@@ -190,11 +190,13 @@ def outPrint(str):
     print("{} ".format(now.time()) + str)
 
 def checkDate():
-    global date
+    global date, lastdate
+    now = datetime.now()
     date = str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour)
+
     if lastdate != date:
-        checkTable("eps_tags", date)
-        checkTable("eps_hashtags", date)
+        checkTable("eps_tags", "tags_"+date)
+        checkTable("eps_hashtags", "hashtags_"+date)
         lastdate = date
 
 
@@ -204,7 +206,7 @@ def main():
     url = create_url()
     headers = create_headers(bearer_token)
     timeout = 0
-    checkDate()
+
     outPrint("Bot started")
     connect_to_endpoint(url, headers)
 
