@@ -8,10 +8,8 @@ import threading
 from collections import OrderedDict
 from emoji import UNICODE_EMOJI
 import schedule
-import pickle
 import io
-import MySQLdb
-import MySQLdb.cursors
+import pymysql as MySQLdb
 
 sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
@@ -29,8 +27,8 @@ MSQL_PWD  = ""
 
 DATABASE_LIST = ['eps_vars', 'eps_tags', 'eps_hashtags']
 DATABASE_TABLE_DEFAULTS = {'eps_vars'            :"CREATE TABLE `eps_vars`.`eps_vars` ( `ID` INT NOT NULL AUTO_INCREMENT , `start_time` INT NOT NULL DEFAULT '-1' , `count_retweets` INT NOT NULL , `count_tweets` INT NOT NULL , `count_tags` INT NOT NULL , `count_hashtags` INT NOT NULL ,  PRIMARY KEY (`ID`)) ENGINE = InnoDB; ",
-                           'eps_tags'            :"CREATE TABLE `eps_tags`.`eps_tags` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(200) NOT NULL , `DATE` VARCHAR(100) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  ",
-                           'eps_hashtags'        :'CREATE TABLE `eps_hashtags`.`eps_hashtags` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(200) NOT NULL , `DATE` VARCHAR(100) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  '}
+                           'eps_tags'            :"CREATE TABLE `eps_tags`.`$date$` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(200) NOT NULL , `DATE` VARCHAR(100) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  ",
+                           'eps_hashtags'        :'CREATE TABLE `eps_hashtags`.`$date$` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(200) NOT NULL , `DATE` VARCHAR(100) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  '}
 
 MSQL_CONNECTION = MySQLdb.connect(
         host=MSQL_HOST,
@@ -42,15 +40,17 @@ MSQL_CONNECTION.autocommit(True)
 
 MSQL_CURSOR = MSQL_CONNECTION.cursor()
 
+date = ""
+lastdate = ""
 
 def createTable(db, name):
-    global  MSQL_CURSOR;
-    MSQL_CURSOR.execute(DATABASE_TABLE_DEFAULTS[db].replace("%name%",name))
+    global  MSQL_CURSOR, date;
+    MSQL_CURSOR.execute(DATABASE_TABLE_DEFAULTS[db].replace("%date%",date))
 
 def checkTable(db, table_name):
     global MSQL_CURSOR
 
-    MSQL_CURSOR.execute("SELECT * FROM INFORMATION_SCHEMA.TABLES where TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '"+db+"'")
+    MSQL_CURSOR.execute("SELECT * FROM INFORMATION_SCHEMA.TABLES where TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = '"+table_name+"'")
     lst = MSQL_CURSOR.fetchall()
 
     if not (lst == [] or lst == ()):
@@ -87,8 +87,6 @@ def initDatabases():
         checkDatabase(name, iterator)
 
     checkTable("eps_vars", "eps_vars")
-    checkTable("eps_tags", "eps_tags")
-    checkTable("eps_hashtags", "eps_hashtags")
 
 def loadState():
     global back_hashtags, back_tag, back_emoji, startTime, mins_tag, mins_hashtags, mins_emoji, countTweets, countReTweets, countTags, countHashtags, countEmoji, MSQL_CURSOR, vars_id
@@ -109,7 +107,7 @@ def loadState():
     vars_id = lst[0][0];
 
 def handleTweet(tweet):
-    global countReTweets, countTweets, lastTweet, back_hashtags, countHashtags, countTags, countEmoji, back_emoji, QUERY_LIST
+    global countReTweets, countTweets, lastTweet, back_hashtags, countHashtags, countTags, countEmoji, back_emoji, QUERY_LIST, date
     # ReTweets will get Ignored
     if not tweet.startswith("RT"):
         words = tweet.split(" ")
@@ -128,11 +126,9 @@ def handleTweet(tweet):
     MSQL_CURSOR.execute("UPDATE `eps_vars`.`eps_vars` SET `count_tweets`= `count_tweets` + 1 WHERE `ID` = '" + str(vars_id) + "';")
 
 def addEntry(type, content):
-    global MSQL_CURSOR, MSQL_CURSOR
+    global MSQL_CURSOR, MSQL_CURSOR, date
     try:
         now = datetime.now()
-        date = str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour)
-
         if type == "hashtag":
             MSQL_CURSOR.execute("SELECT ID,NAME FROM `eps_hashtags`.`eps_hashtags` WHERE `DATE` = '"+str(date)+"' AND `NAME` = '"+content+"';")
             lst = MSQL_CURSOR.fetchall()
@@ -179,6 +175,7 @@ def connect_to_endpoint(url, headers):
                 json_response = json.loads(response_line)
                 #threading.Thread(target=handleTweet, args=(json_response["data"]["text"],)).start()
                 handleTweet(json_response["data"]["text"])
+                schedule.every().minute.do(checkDate)
                 schedule.run_pending()
 
         if response.status_code != 200:
@@ -191,6 +188,15 @@ def connect_to_endpoint(url, headers):
 def outPrint(str):
     now = datetime.now()
     print("{} ".format(now.time()) + str)
+
+def checkDate():
+    global date
+    date = str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour)
+    if lastdate != date:
+        checkTable("tags", date)
+        checkTable("hashtags", date)
+        lastdate = date
+
 
 def main():
     global currentTime
