@@ -193,8 +193,8 @@ def checkDate():
     global date
     date = str(now.year) + ":" + str(now.month) + ":" + str(now.day) + "::" + str(now.hour)
     if lastdate != date:
-        checkTable("tags", date)
-        checkTable("hashtags", date)
+        checkTable("eps_tags", date)
+        checkTable("eps_hashtags", date)
         lastdate = date
 
 
