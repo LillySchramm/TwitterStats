@@ -204,7 +204,7 @@ def main():
     url = create_url()
     headers = create_headers(bearer_token)
     timeout = 0
-
+    checkDate()
     outPrint("Bot started")
     connect_to_endpoint(url, headers)
 
