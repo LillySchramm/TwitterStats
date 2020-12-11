@@ -1,0 +1,20 @@
+.list-group{
+    max-height: 50%;
+    margin-bottom: 10px;
+
+    left:50%;    
+    transform: translate(-50%, 0);
+
+    overflow-y:scroll;
+    position: absolute;
+    -webkit-overflow-scrolling: touch;
+    color: white;
+    background-color: black;
+}
+
+
+.eps{
+    color: white;
+    background-color: black;
+    border-color: white;
+}
