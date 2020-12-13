@@ -32,6 +32,18 @@ hr{
 
 tr{
     font-size: 20px;
+    overflow: hidden;
+}
+
+button {
+    border: 0;
+    padding: 0;
+    display: inline;
+    background: none;
+}
+button:hover {
+    cursor: pointer;
+    color: blue;
 }
 
 tr.head{
@@ -40,10 +52,47 @@ tr.head{
     border: 1px solid white;
 }
 
-p{
+p.def{
     font-size: 18pt;
     margin-left: 25%;
     margin-right: 25%;
+}
+
+p.defc{
+    font-size: 18pt;
+    margin-left: 25%;
+    margin-right: 25%;
+    text-align: center;
+}
+
+div.error{
+    
+    margin: auto;
+    width: 50%;
+    border: 3px solid red;
+    padding: 10px;
+      
+}
+
+div.about{
+    margin: auto;
+    width: 50%;
+    border: 3px solid white;
+    padding: 10px;
+    text-align: center;
+    font-size: 16pt;
+}
+
+div.error p{
+    font-size: 28pt;
+}
+
+div.error h2, div.about h2{
+    font-size: 45pt;
+}
+
+p.center{
+    text-align: center;
 }
 
 table{
@@ -63,8 +112,9 @@ table{
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-around;
-    align-items: stretch;
+    align-items: normal;
     align-content: normal;
+    max-width: 100%;
   }
   
   .flex-items:nth-child(1) {
@@ -74,8 +124,9 @@ table{
     flex-basis: auto;
     align-self: auto;
     order: 0;
-    max-width: 40%;
-    min-width: 40%;
+    max-width: 40% !important;
+    min-width: 40% !important;
+    width: 40%;
   }
   
   .flex-items:nth-child(2) {
@@ -85,6 +136,8 @@ table{
     flex-basis: auto;
     align-self: auto;
     order: 0;
-    max-width: 40%;
-    min-width: 40%;
+    max-width: 40% !important;
+    min-width: 40% !important;
+    width: 40%;
+
   }
