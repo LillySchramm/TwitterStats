@@ -2,25 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f0040ad5-60af-4045-b292-a25c64ffd948" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/back_emoji.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/back_hashtags.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/back_tag.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/block" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/mins_emoji.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/mins_hashtags.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/data/mins_tag.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/test.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/website/config.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/css/searchbar.css" beforeDir="false" afterPath="$PROJECT_DIR$/website/css/searchbar.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/website/css/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/database.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/fetch.php" beforeDir="false" afterPath="$PROJECT_DIR$/website/fetch.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/website/index.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/js/script.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/website/js/suggestions.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
