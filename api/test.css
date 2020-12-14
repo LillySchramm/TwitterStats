@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900&display=swap');
+
+*{
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  color: white;
+}
+
+ul{
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+body{
+  background: #000;
+  margin: 0;
+  height: 100%;
+  min-height: 100%;
+}
+
+svg{
+  position: absolute;
+  z-index: -10;
+  overflow: hidden;
+}
+polyline{
+  background: white;
+}
+
+h1{
+  text-align: center;
+  font-size: 70px;
+}
+
+h2{
+  text-align: center;
+  font-size: 40px;
+}
+
+h3{
+  text-align: center;
+  font-size: 25px;
+}
+
+hr{
+  text-align:  center;
+  width: 40%;
+}
+
+p{
+  text-align: center;
+  font-size: 26px;
+  margin-left: 15%;
+  margin-right: 15%;
+}
+
+div.standart{
+  text-align: center;
+  font-size: 26px;
+}
+
+.upper{
+    padding: 30px;
+    transition: 0.5s;
+    list-style-type: none;
+}
+
+.upper{
+  margin-bottom: 30px;
+  text-align: left;
+  border-color: white;
+  border-style: solid;
+}
+
+input{
+  display: none;
+}
+
+#mehl:checked + .diver .upper .inv {
+    display: block;
+}
+
+#milch:checked + .diver .upper .inv {
+    display: block;
+}
+
+#Zucker:checked + .diver .upper .inv {
+    display: block;
+}
+
+.upper:hover{
+  background: #333;
+}
+
+.diver .upper .inv{
+  display: none;
+}
+
+.dummy{
+  height: 100%;
+  width: 100%;
+}
+
+.costs{
+  color: red;
+}
+
+.noselect {
+
+}
+
+.tweets{
+  font-size:17px;
+}
