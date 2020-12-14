@@ -1,37 +1,24 @@
 <?php
-  require_once 'config.php';
+  require_once 'config.php';  
 
-  function genDate($offset)
-  {
-    $currentTime = time();
-    $timeToSubtract = ($offset * 60 * 60);
-    $timeInPast = $currentTime - $timeToSubtract;
-    $s_date = strval(date("Y", $timeInPast));
-    $s_date .= ":".intval(date('m', $timeInPast)).":".intval(date('d', $timeInPast))."::".intval(date('H', $timeInPast));
+  if (isset($_POST['query'])) {
 
-    return $s_date;
-  }
+    $inpText = $_POST['query'];
 
-if (isset($_POST['query'])) {
+    $sql = 'SELECT NAME FROM `eps_dump`.`dump` WHERE NAME LIKE :name ORDER BY COUNT DESC LIMIT 8';
+    $result = executeSQL($sql, ['name' => '%' . $inpText . '%'], $conn);
 
-  $inpText = $_POST['query'];
+    if ($result) {
 
-  $sql = 'SELECT NAME FROM `eps_dump`.`dump` WHERE NAME LIKE :name ORDER BY COUNT DESC LIMIT 30';
-  $stmt = $conn->prepare($sql);
-  $stmt->execute(['name' => '%' . $inpText . '%']);
-  $result = $stmt->fetchAll();
+      foreach ($result as $row) {
+        $n = $row['NAME'];
+        echo '<a href="#" class="list-group-item list-group-item-action border-1 eps">' . $n . '</a>';
+      }
 
-  if ($result) {
-
-    foreach ($result as $row) {
-      $n = $row['NAME'];
-      echo '<a href="#" class="list-group-item list-group-item-action border-1">' . $n . '</a>';
+    }else{
+      //echo '<p class="list-group-item list-group-item-action border-1 eps">No Results. More info: <a href=""><u>Why cant I find my hashtag/tag?</u></a></p>';
     }
-
-  }else{
-    echo '<p class="list-group-item list-group-item-action border-1">No Results. More info: <a href="">Why cant I find my hashtag/tag?</a></p>';
   }
-}
 
 
 
