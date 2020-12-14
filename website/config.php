@@ -2,9 +2,9 @@
   const TOP_X = 30;
   const MAX_HOURS_BACK = 30 * 24;
 
-  const DBHOST = 'localhost';
-  const DBUSER = 'web';
-  const DBPASS = 'nonpass04';
+  const DBHOST = '';
+  const DBUSER = '';
+  const DBPASS = '';
 
   $dsn = 'mysql:host=' . DBHOST . '';
 
