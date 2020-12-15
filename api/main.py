@@ -34,6 +34,8 @@ MSQL_HOST = ""
 MSQL_USER = ""
 MSQL_PWD = ""
 
+FORBIDEN_CHARS = [".", ",", "?", "!","\n", "\r"]
+
 DATABASE_LIST = ['eps_vars', 'eps_tags', 'eps_hashtags', 'eps_dump']
 DATABASE_TABLE_DEFAULTS = {
     'eps_vars': "CREATE TABLE `eps_vars`.`eps_vars` ( `ID` INT NOT NULL AUTO_INCREMENT , `start_time` INT NOT NULL DEFAULT '-1' , `count_retweets` INT NOT NULL , `count_tweets` INT NOT NULL , `count_tags` INT NOT NULL , `count_hashtags` INT NOT NULL ,  PRIMARY KEY (`ID`)) ENGINE = InnoDB; ",
@@ -66,14 +68,32 @@ QUERRY_CACHE = list()
 
 """
     ----------------------------------------------------------------------
-                                    Debug
+                        Debug and Reformatting
     ----------------------------------------------------------------------
 """
 
+def cleanHashtag(string):
+    #Delete links
 
-def outPrint(str):
+    hta = string.split("https://")
+    ht = hta[0]
+
+    #Delete Multiplications
+
+    hta = ht.split("#")
+    ht = "#" + hta[1]
+
+    #Delete chars
+
+    for char in FORBIDEN_CHARS:
+        ht = ht.replace(char, "")
+
+    return ht
+
+def outPrint(string):
     now = datetime.now()
-    print("{} ".format(now.time()) + str)
+
+    print("{} ".format(str(now.time()) + " " + str(string)))
 
 
 """
@@ -191,7 +211,8 @@ def handleTweet(tweet):
         words = tweet.split(" ")
         for word in words:
             if word.startswith("#"):
-                addEntry("hashtag", word.replace("\n", "").replace("\r", ""))
+                word = cleanHashtag(word)
+                addEntry("hashtag", word)
                 QUERRY_CACHE.append(
                     "UPDATE `eps_vars`.`eps_vars` SET `count_hashtags`= `count_hashtags` + 1 WHERE `ID` = '" + str(
                         vars_id) + "';")
@@ -337,6 +358,7 @@ def checkDate():
             outPrint("Started dumping")
 
             MSQL_CURSOR.execute("DELETE FROM `eps_hashtags`.`hashtags_" + lastdate + "` WHERE COUNT < 4")
+            MSQL_CURSOR.execute("DELETE FROM `eps_hashtags`.`hashtags_" + lastdate + "` WHERE NAME = '#'")
             MSQL_CURSOR.execute("DELETE FROM `eps_tags`.`tags_" + lastdate + "` WHERE COUNT < 5")
             MSQL_CURSOR.execute("DELETE FROM `eps_dump`.`dump` WHERE DATE < NOW() - INTERVAL 2 DAY")
             MSQL_CURSOR.execute("SELECT NAME, COUNT FROM `eps_hashtags`.`hashtags_" + lastdate + "`")
