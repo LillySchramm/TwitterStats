@@ -96,6 +96,24 @@ def cleanHashtag(string):
 
     return ht
 
+def cleanTag(string):
+    #Delete links
+
+    hta = string.split("https://")
+    ht = hta[0]
+
+    #Delete Multiplications
+
+    hta = ht.split("@")
+    ht = "@" + hta[1]
+
+    #Delete chars
+
+    for char in FORBIDEN_CHARS:
+        ht = ht.replace(char, "")
+
+    return ht
+
 def outPrint(string):
     now = datetime.now()
 
@@ -215,14 +233,15 @@ def handleTweet(tweet):
     if not tweet.startswith("RT"):
         words = tweet.split(" ")
         for word in words:
-            word = cleanHashtag(word)
             if word.startswith("#"):
+                word = cleanHashtag(word)
                 addEntry("hashtag", word)
                 QUERRY_CACHE.append(
                     "UPDATE `eps_vars`.`eps_vars` SET `count_hashtags`= `count_hashtags` + 1 WHERE `ID` = '" + str(
                         vars_id) + "';")
 
             elif word.startswith('@') and not word == "@":
+                word = cleanTag(word)
                 addEntry("tag", word.replace("\n", "").replace("\r", ""))
                 QUERRY_CACHE.append(
                     "UPDATE `eps_vars`.`eps_vars` SET `count_tags`= `count_tags` + 1 WHERE `ID` = '" + str(
