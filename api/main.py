@@ -6,7 +6,6 @@ import time
 from datetime import datetime, timedelta
 import threading
 from collections import OrderedDict
-from emoji import UNICODE_EMOJI
 import schedule
 import io
 import pymysql as MySQLdb
@@ -38,10 +37,17 @@ FORBIDEN_CHARS = [".", ",", "?", "!","\n", "\r"]
 
 DATABASE_LIST = ['eps_vars', 'eps_tags', 'eps_hashtags', 'eps_dump']
 DATABASE_TABLE_DEFAULTS = {
-    'eps_vars': "CREATE TABLE `eps_vars`.`eps_vars` ( `ID` INT NOT NULL AUTO_INCREMENT , `start_time` INT NOT NULL DEFAULT '-1' , `count_retweets` INT NOT NULL , `count_tweets` INT NOT NULL , `count_tags` INT NOT NULL , `count_hashtags` INT NOT NULL ,  PRIMARY KEY (`ID`)) ENGINE = InnoDB; ",
-    'eps_tags': "CREATE TABLE `eps_tags`.`$date$` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) NOT NULL , `DATE` VARCHAR(50) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  ",
-    'eps_hashtags': 'CREATE TABLE `eps_hashtags`.`$date$` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) NOT NULL , `DATE` VARCHAR(50) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  ',
-    'eps_dump': "CREATE TABLE `eps_dump`.`dump` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) NOT NULL , `COUNT` INT NOT NULL , `DATE` DATE NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB; "}
+    'eps_vars': "CREATE TABLE `eps_vars`.`eps_vars` ( `ID` INT NOT NULL AUTO_INCREMENT , `start_time` INT NOT NULL "
+                "DEFAULT '-1' , `count_retweets` INT NOT NULL , `count_tweets` INT NOT NULL , `count_tags` INT NOT "
+                "NULL , `count_hashtags` INT NOT NULL ,  PRIMARY KEY (`ID`)) ENGINE = InnoDB; ",
+    'eps_tags': "CREATE TABLE `eps_tags`.`$date$` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) NOT NULL , "
+                "`DATE` VARCHAR(50) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB;  ",
+    'eps_hashtags': 'CREATE TABLE `eps_hashtags`.`$date$` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) '
+                    'NOT NULL , `DATE` VARCHAR(50) NOT NULL , `COUNT` INT NOT NULL , PRIMARY KEY (`ID`)) ENGINE = '
+                    'InnoDB;  ',
+    'eps_dump': "CREATE TABLE `eps_dump`.`dump` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) NOT NULL , "
+                "`COUNT` INT NOT NULL , `DATE` DATE NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB; "}
+
 
 MSQL_CONNECTION = MySQLdb.connect(
     host=MSQL_HOST,
@@ -121,7 +127,6 @@ def updateQuerrys():
                         Database and Table handling
     ----------------------------------------------------------------------
 """
-
 
 # Creates a table with table_name = name; in database db
 def createTable(db, name):
@@ -210,6 +215,7 @@ def handleTweet(tweet):
     if not tweet.startswith("RT"):
         words = tweet.split(" ")
         for word in words:
+            word = cleanHashtag(word)
             if word.startswith("#"):
                 word = cleanHashtag(word)
                 addEntry("hashtag", word)
@@ -360,7 +366,7 @@ def checkDate():
             MSQL_CURSOR.execute("DELETE FROM `eps_hashtags`.`hashtags_" + lastdate + "` WHERE COUNT < 4")
             MSQL_CURSOR.execute("DELETE FROM `eps_hashtags`.`hashtags_" + lastdate + "` WHERE NAME = '#'")
             MSQL_CURSOR.execute("DELETE FROM `eps_tags`.`tags_" + lastdate + "` WHERE COUNT < 5")
-            MSQL_CURSOR.execute("DELETE FROM `eps_dump`.`dump` WHERE DATE < NOW() - INTERVAL 2 DAY")
+            MSQL_CURSOR.execute("DELETE FROM `eps_dump`.`dump` WHERE DATE < NOW() - INTERVAL 2 DAY AND COUNT < 115")
             MSQL_CURSOR.execute("SELECT NAME, COUNT FROM `eps_hashtags`.`hashtags_" + lastdate + "`")
             lst = MSQL_CURSOR.fetchall()
 
@@ -432,6 +438,6 @@ def main():
 
 
 if __name__ == "__main__":
-    initDatabases()
-    loadState()
-    main()
+   initDatabases()
+   loadState()
+   main()

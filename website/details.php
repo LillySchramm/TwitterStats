@@ -17,25 +17,14 @@ if(startsWith($search, "#")){
 if($target != "none"){
     $last_avg = 0;
     $avg = 0;
-    $avg_list = [];
-    $avg_index = 0;
+
+    $count_list = [];
+    $date_list = [];
+ 
 
     for($i = 1; $i < MAX_HOURS_BACK; $i++){
         $date = genDate($i);        
-        $tbl_name = $target."_".$date;        
-
-        if(count($avg_list) > 24){
-            $avg = $avg - array_shift($avg_list);
-        }
-        
-        if($i < 24){
-            $last_avg = 0;
-        }else{
-            $last_avg = floor($avg / 24);
-        }
-   
-
-        
+        $tbl_name = $target."_".$date;             
 
         if(doesTableExist($tbl_name, $conn)){
             $sql = "SELECT COUNT FROM `eps_".$target."`.`".$tbl_name."` WHERE NAME = '".$search."';";
@@ -43,26 +32,37 @@ if($target != "none"){
 
             if($result){
                 foreach ($result as $row) { 
-                    $count = $row['COUNT'];        
-
-                    $avg = $avg + (int) $count;   
-                    array_push($avg_list ,(int) $count);                    
-                    
-                    $lst = ",['".genDateForGraph($i)."',".$count.",".  $last_avg."]".$lst;
+                    $count = $row['COUNT'];                 
+                    array_push($date_list,genDateForGraph($i));
+                    array_push($count_list , $count);                  
                     $num_results++;
                 }
             }else{
-                $lst = ",['".genDateForGraph($i)."',0, ".  $last_avg."]".$lst;
-                array_push($avg_list , 0);
+                array_push($date_list,genDateForGraph($i));
+                array_push($count_list , 0);        
             }
         }else {
             break;
         }
     }
-
-    $lst = $lst_base . $lst;
-    $avg_index ++;
+    $lst = "";
     
+    foreach($date_list as $d){
+        
+        // Calculate the avg
+        $arr = array_slice($count_list, -24);        
+        $avg = 0;
+        foreach($arr as $c){
+            $avg = $avg + $c;
+        }
+        $avg = $avg/24;
+
+        //Add to array
+
+        $lst .= ",['" . $d . "'," . array_pop($count_list) ."," . floor($avg) .  "]";
+    }
+    
+    $lst = $lst_base . $lst;
 }
 ?>
 
