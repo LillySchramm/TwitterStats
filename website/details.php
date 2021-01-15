@@ -4,7 +4,7 @@ require_once 'config.php';
 
 $search = $_POST['search'];
 $target = "none";
-$lst_base = "['Date', 'Count']";
+$lst_base = "['Date', 'Count', '24h AVG']";
 $lst = "";
 $num_results = 0;
 
@@ -15,20 +15,45 @@ if(startsWith($search, "#")){
 }
 
 if($target != "none"){
+    $last_avg = 0;
+    $avg = 0;
+    $avg_list = [];
+    $avg_index = 0;
+
     for($i = 1; $i < MAX_HOURS_BACK; $i++){
-        $tbl_name = $target."_".genDate($i);
+        $date = genDate($i);        
+        $tbl_name = $target."_".$date;        
+
+        if(count($avg_list) > 24){
+            $avg = $avg - array_shift($avg_list);
+        }
+        
+        if($i < 24){
+            $last_avg = 0;
+        }else{
+            $last_avg = floor($avg / 24);
+        }
+   
+
+        
 
         if(doesTableExist($tbl_name, $conn)){
             $sql = "SELECT COUNT FROM `eps_".$target."`.`".$tbl_name."` WHERE NAME = '".$search."';";
-            $result = executeSQL($sql, [], $conn);
+            $result = executeSQL($sql, [], $conn);           
+
             if($result){
-                foreach ($result as $row) {
-                    $count = $row['COUNT'];                    
-                    $lst = ",['".genDateForGraph($i)."',".$count."]".$lst;
+                foreach ($result as $row) { 
+                    $count = $row['COUNT'];        
+
+                    $avg = $avg + (int) $count;   
+                    array_push($avg_list ,(int) $count);                    
+                    
+                    $lst = ",['".genDateForGraph($i)."',".$count.",".  $last_avg."]".$lst;
                     $num_results++;
                 }
             }else{
-                $lst = ",['".genDateForGraph($i)."',0]".$lst;
+                $lst = ",['".genDateForGraph($i)."',0, ".  $last_avg."]".$lst;
+                array_push($avg_list , 0);
             }
         }else {
             break;
@@ -36,6 +61,8 @@ if($target != "none"){
     }
 
     $lst = $lst_base . $lst;
+    $avg_index ++;
+    
 }
 ?>
 
@@ -70,7 +97,10 @@ if($target != "none"){
                 startup: true
             },
             legend: { position: 'bottom' },
-            colors: ['#fff'],
+            series: {
+            0: { color: '#fff' },
+            1: { color: '#51ff00' },
+            },
             backgroundColor: {
                 fill: '#000',
             } ,          
