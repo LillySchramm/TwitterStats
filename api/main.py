@@ -217,7 +217,6 @@ def handleTweet(tweet):
         for word in words:
             word = cleanHashtag(word)
             if word.startswith("#"):
-                word = cleanHashtag(word)
                 addEntry("hashtag", word)
                 QUERRY_CACHE.append(
                     "UPDATE `eps_vars`.`eps_vars` SET `count_hashtags`= `count_hashtags` + 1 WHERE `ID` = '" + str(

@@ -45,9 +45,10 @@ if($target != "none"){
             break;
         }
     }
+    
     $lst = "";
     
-    foreach($date_list as $d){
+    while(count($date_list) != 0){
         
         // Calculate the avg
         $arr = array_slice($count_list, -24);        
@@ -59,7 +60,7 @@ if($target != "none"){
 
         //Add to array
 
-        $lst .= ",['" . $d . "'," . array_pop($count_list) ."," . floor($avg) .  "]";
+        $lst .= ",['" . array_pop($date_list) . "'," . array_pop($count_list) ."," . floor($avg) .  "]";
     }
     
     $lst = $lst_base . $lst;
