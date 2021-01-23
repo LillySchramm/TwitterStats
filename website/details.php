@@ -100,7 +100,7 @@ if($target != "none"){
             legend: { position: 'bottom' },
             series: {
             0: { color: '#fff' },
-            1: { color: '#51ff00' },
+            1: { color: '#51ff00', lineWidth: 4 },
             },
             backgroundColor: {
                 fill: '#000',

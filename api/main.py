@@ -8,6 +8,7 @@ import threading
 from collections import OrderedDict
 import schedule
 import io
+import twitter
 import pymysql as MySQLdb
 
 sys.stdin.reconfigure(encoding='utf-8')
@@ -33,7 +34,7 @@ MSQL_HOST = ""
 MSQL_USER = ""
 MSQL_PWD = ""
 
-FORBIDEN_CHARS = [".", ",", "?", "!","\n", "\r"]
+FORBIDEN_CHARS = [".", ",", "?", "!", "\n", "\r"]
 
 DATABASE_LIST = ['eps_vars', 'eps_tags', 'eps_hashtags', 'eps_dump']
 DATABASE_TABLE_DEFAULTS = {
@@ -47,7 +48,6 @@ DATABASE_TABLE_DEFAULTS = {
                     'InnoDB;  ',
     'eps_dump': "CREATE TABLE `eps_dump`.`dump` ( `ID` INT NOT NULL AUTO_INCREMENT , `NAME` VARCHAR(100) NOT NULL , "
                 "`COUNT` INT NOT NULL , `DATE` DATE NOT NULL , PRIMARY KEY (`ID`)) ENGINE = InnoDB; "}
-
 
 MSQL_CONNECTION = MySQLdb.connect(
     host=MSQL_HOST,
@@ -78,41 +78,44 @@ QUERRY_CACHE = list()
     ----------------------------------------------------------------------
 """
 
+
 def cleanHashtag(string):
-    #Delete links
+    # Delete links
 
     hta = string.split("https://")
     ht = hta[0]
 
-    #Delete Multiplications
+    # Delete Multiplications
 
     hta = ht.split("#")
     ht = "#" + hta[1]
 
-    #Delete chars
+    # Delete chars
 
     for char in FORBIDEN_CHARS:
         ht = ht.replace(char, "")
 
     return ht
 
+
 def cleanTag(string):
-    #Delete links
+    # Delete links
 
     hta = string.split("https://")
     ht = hta[0]
 
-    #Delete Multiplications
+    # Delete Multiplications
 
     hta = ht.split("@")
     ht = "@" + hta[1]
 
-    #Delete chars
+    # Delete chars
 
     for char in FORBIDEN_CHARS:
         ht = ht.replace(char, "")
 
     return ht
+
 
 def outPrint(string):
     now = datetime.now()
@@ -145,6 +148,7 @@ def updateQuerrys():
                         Database and Table handling
     ----------------------------------------------------------------------
 """
+
 
 # Creates a table with table_name = name; in database db
 def createTable(db, name):
@@ -190,10 +194,10 @@ def initDatabases():
     global MSQL_CURSOR
 
     MSQL_CURSOR.execute("SHOW DATABASES")
-    iterator = [];
+    iterator = []
 
     for i in MSQL_CURSOR:
-        iterator += i;
+        iterator += i
 
     for name in DATABASE_LIST:
         checkDatabase(name, iterator)
@@ -221,7 +225,7 @@ def loadState():
 
     MSQL_CURSOR.execute("SELECT * FROM `eps_vars`.`eps_vars`")
     lst = MSQL_CURSOR.fetchall()
-    vars_id = lst[0][0];
+    vars_id = lst[0][0]
 
 
 # Preprocesses tweets to find (hash-)tags
@@ -231,21 +235,29 @@ def handleTweet(tweet):
     global date, QUERRY_CACHE
     # ReTweets will get Ignored
     if not tweet.startswith("RT"):
-        words = tweet.split(" ")
-        for word in words:
-            if word.startswith("#"):
-                word = cleanHashtag(word)
-                addEntry("hashtag", word)
-                QUERRY_CACHE.append(
-                    "UPDATE `eps_vars`.`eps_vars` SET `count_hashtags`= `count_hashtags` + 1 WHERE `ID` = '" + str(
-                        vars_id) + "';")
+        with open("data/" + date + ".txt", "a") as myfile:
+            myfile.write(tweet + "\n")
+            myfile.write("---\n")
 
-            elif word.startswith('@') and not word == "@":
-                word = cleanTag(word)
-                addEntry("tag", word.replace("\n", "").replace("\r", ""))
-                QUERRY_CACHE.append(
-                    "UPDATE `eps_vars`.`eps_vars` SET `count_tags`= `count_tags` + 1 WHERE `ID` = '" + str(
-                        vars_id) + "';")
+        words = tweet.split(" ")
+        used = []
+
+        for word in words:
+            if word not in used:
+                used.append(word)
+                if word.startswith("#"):
+                    word = cleanHashtag(word)
+                    addEntry("hashtag", word)
+                    QUERRY_CACHE.append(
+                        "UPDATE `eps_vars`.`eps_vars` SET `count_hashtags`= `count_hashtags` + 1 WHERE `ID` = '" + str(
+                            vars_id) + "';")
+
+                elif word.startswith('@') and not word == "@":
+                    word = cleanTag(word)
+                    addEntry("tag", word.replace("\n", "").replace("\r", ""))
+                    QUERRY_CACHE.append(
+                        "UPDATE `eps_vars`.`eps_vars` SET `count_tags`= `count_tags` + 1 WHERE `ID` = '" + str(
+                            vars_id) + "';")
     else:
         QUERRY_CACHE.append(
             "UPDATE `eps_vars`.`eps_vars` SET `count_retweets`= `count_retweets` + 1 WHERE `ID` = '" + str(
@@ -413,6 +425,7 @@ def checkDate():
             lst = MSQL_CURSOR.fetchall()
 
             for item in lst:
+
                 try:
                     MSQL_CURSOR.execute("SELECT ID FROM `eps_dump`.`dump` WHERE NAME ='" + item[0] + "';")
                     lst1 = MSQL_CURSOR.fetchall()
@@ -434,6 +447,8 @@ def checkDate():
             outPrint("Finished dumping")
             outPrint(str(failed) + " Fails")
 
+            tweet(lastdate)
+
         lastdate = date
         TAG_INDEX = 1
         HASHTAG_INDEX = 1
@@ -442,6 +457,40 @@ def checkDate():
 
     outPrint(str(tweets) + " processed last minute")
     tweets = 0
+
+
+def tweet(date):
+    api = twitter.Api(consumer_key='',
+                      consumer_secret='',
+                      access_token_key='',
+                      access_token_secret='')
+
+    s = "#Twitter\n"
+    s += "Last Hours Top 3 Tags\n"
+
+    i = 1
+
+    MSQL_CURSOR.execute("SELECT * FROM `eps_tags`.`tags_" + date + "` ORDER BY COUNT DESC LIMIT 3")
+    lst = MSQL_CURSOR.fetchall()
+    for x in lst:
+        s += str(i) + ". " + str(x[1]) + "\n"
+        i += 1
+
+    s += "\nLast Hours Top 3 Hashtags\n"
+
+    i = 1
+    MSQL_CURSOR.execute("SELECT * FROM `eps_hashtags`.`hashtags_" + date + "` ORDER BY COUNT DESC LIMIT 3")
+    lst = MSQL_CURSOR.fetchall()
+
+    print(lst)
+
+    for x in lst:
+        s += str(i) + ". " + str(x[1]) + "\n"
+        i += 1
+
+    s += "\nMore info at https://twitterstats.eps-dev.de/\n#statistics #epsdev " + date
+
+    api.PostUpdate(s)
 
 
 # Prepares the connection
@@ -456,6 +505,6 @@ def main():
 
 
 if __name__ == "__main__":
-   initDatabases()
-   loadState()
-   main()
+    initDatabases()
+    loadState()
+    main()
