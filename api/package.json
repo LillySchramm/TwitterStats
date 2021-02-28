@@ -1,0 +1,22 @@
+{
+  "name": "twitterstats-api",
+  "version": "1.0.0",
+  "description": "The api for my twitterstats service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EliasSchramm/TwitterStats/tree/main"
+  },
+  "keywords": [
+    "api",
+    "statistics"
+  ],
+  "author": "Elias Schramm",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
