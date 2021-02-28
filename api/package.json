@@ -17,9 +17,6 @@
   "author": "Elias Schramm",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "mysql": "^2.18.1",
-    "node-datetime": "^2.1.2"
+    "express": "^4.17.1"
   }
 }
