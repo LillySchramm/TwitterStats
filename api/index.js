@@ -6,10 +6,12 @@ const port = 42069;
 
 const app = express();
 const timelineRoute = require('./routes/timeline')
+const topRoute = require('./routes/top')
 const cors = require('cors')
 
 app.use(cors());
 app.use('/timeline', timelineRoute);
+app.use('/top', topRoute);
 module.exports = app;
 
 const server = http.createServer(app);
