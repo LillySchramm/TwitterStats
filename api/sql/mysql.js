@@ -32,7 +32,7 @@ const connection = () => {
        resolve({ query, release });
      });
    });
- };
+};
  
 const query = (sql, binding) => {
   return new Promise((resolve, reject) => {    
