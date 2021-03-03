@@ -4,3 +4,4 @@ crawler/twitt.py
 crawler/main.py~
 api/node_modules/*
 venv/*
+website/public/*
