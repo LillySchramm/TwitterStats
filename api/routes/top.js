@@ -27,7 +27,22 @@ router.get('/:count/:type/:year/:month/:day/:hour', async (req, res, next) => {
             error: "Available endpoints: /tag/ /hashtag/"            
         });
         return;
+    }    
+
+    let str_err = false;
+    if(!tools.isNormalInteger(count)) str_err = true;
+    if(!tools.isNormalInteger(year)) str_err = true;
+    if(!tools.isNormalInteger(month)) str_err = true;
+    if(!tools.isNormalInteger(day)) str_err = true;
+    if(!tools.isNormalInteger(hour)) str_err = true;
+
+    if(str_err){
+        res.status(405).json({
+            error: "year, month, day and hour MUST be an integer"            
+        });
+        return;
     }
+
 
     let db_name = "eps_" + typeNames[type];  
     let table_name = typeNames[type] + "_" + year + ":" + month + ":" + day + "::" + hour;

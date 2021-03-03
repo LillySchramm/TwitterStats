@@ -15,5 +15,10 @@ function cleanSearch(s){
     return s.replace(";","").replace("-","").replace("?", "");
 }
 
-module.exports = {removeLeadingZero, cleanSearch};
+function isNormalInteger(str) {
+    return /^\+?(0|[1-9]\d*)$/.test(str);
+}
+
+
+module.exports = {removeLeadingZero, cleanSearch, isNormalInteger};
 
