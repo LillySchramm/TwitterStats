@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const tools = require('../tools/tools');
+var isBase64 = require('is-base64');
+
 var datetime = require('node-datetime');
 
 const MAX_DAYS_BACK = 30;
@@ -28,6 +30,14 @@ router.get('/:type/:search', async (req, res, next) => {
         });
         return;
     }
+
+    if(search.length > 40){
+        res.status(414).json({
+            error: "Request is only alowed with up to 40 characters"
+        });
+        return;
+    }
+
     let db_name = "eps_" + typeNames[type];
 
     let now = datetime.create().now();
