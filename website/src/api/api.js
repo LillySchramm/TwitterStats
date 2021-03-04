@@ -17,9 +17,17 @@ const getToplist = (type, n) => {
     });
 }
 
-const getStats = (type, n) => {
+const getStats = () => {
     return new Promise((resolve, reject) => {    
         request("stats").then((ret) => {
+            resolve(ret);
+        })
+    });
+}
+
+const getHistory = (type, n) =>{
+    return new Promise((resolve, reject) => {    
+        request("timeline/" + type + "/" + n).then((ret) => {
             resolve(ret);
         })
     });
@@ -49,4 +57,4 @@ String.prototype.hexDecode = function(){
     return back;
 }
 
-module.exports = {getToplist, getStats}
+module.exports = {getToplist, getStats, getHistory}
