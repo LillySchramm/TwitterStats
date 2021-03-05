@@ -10,7 +10,8 @@ class Graph extends React.Component {
       super(probs);     
 
       this.state = {
-        gra:<span></span>
+        gra:<span></span>,
+        last_url:window.location.href
       };
 
       this.getData();
@@ -20,6 +21,18 @@ class Graph extends React.Component {
         date = date.split(':')
         return date[1] + "." + date[2] + " " + date[4] + "h"
     }
+
+    componentDidMount(){
+        this.ticker = setInterval(() => {
+            if(this.state.last_url != window.location.href){
+                this.setState({
+                    gra:<span></span>,
+                    last_url:window.location.href
+                })
+                this.getData(); 
+            }
+        }, 100);        
+    }    
 
     async getData(){
         let d = window.location.href;

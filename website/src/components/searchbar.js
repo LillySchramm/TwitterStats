@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Redirect } from 'react-router';
 
 class TagOrHashtag_Error_Banner extends React.Component {
     constructor(probs){
@@ -18,10 +19,11 @@ class TagOrHashtag_Error_Banner extends React.Component {
 class Searchbar extends React.Component {
     constructor(probs){
       super(probs);     
-    
+
       this.state = {
           search_key:"",
-          show_t_ht_err:false
+          show_t_ht_err:false,
+          redirect:""
       }
       
       this.handleSubmit = this.handleSubmit.bind(this);
@@ -29,6 +31,8 @@ class Searchbar extends React.Component {
     }   
 
     handleSubmit(e){
+        e.preventDefault();    
+
         let val = this.state.search_key;
         console.log(val);
         if(!val.startsWith("#") && !val.startsWith("@")){
@@ -39,7 +43,11 @@ class Searchbar extends React.Component {
         }else if(val.length < 2) return;
 
         let prefix = val.startsWith("#") ? "hashtag" : "tag";
-        window.location.href = encodeURI("/history/" + prefix + "/" + val.substr(1));
+        
+        this.setState({
+            redirect:encodeURI("/history/" + prefix + "/" + val.substr(1))
+        })
+        this.forceUpdate()
         return;
     }
 
@@ -50,13 +58,14 @@ class Searchbar extends React.Component {
         })
     }   
 
-    render(){              
-
+    render(){   
         let err = this.state.show_t_ht_err ? <TagOrHashtag_Error_Banner /> : "";
+        let redirect = this.state.redirect != "" ? <Redirect to={this.state.redirect} /> : "";
 
         return (
             <div class="form">
-                <form class="p-3">
+                {redirect}
+                <form class="p-3" onSubmit={this.handleSubmit}>
                     <div class="input-group">
                         <input type="text" name="search" id="search" class="form-control form-control-lg rounded-0 eps" placeholder="Search for an tag or hashtag..." autocomplete="off" value={this.state.search_key} onInput={this.handleChange} required />
                         <div class="input-group-append">
@@ -68,8 +77,11 @@ class Searchbar extends React.Component {
                 {err}
             </div>
         );      
-    }
-  
+    }  
   }
 
-  export default Searchbar
+  export default () => {
+    return (
+        <Searchbar />
+    )
+}
