@@ -18,8 +18,12 @@ class Stats extends React.Component {
     }   
 
     componentDidMount(){
-        this.ticker = setInterval(() => {this.getStats()}, 4000);        
-    }    
+        this.ticker = setInterval(() => {this.getStats()}, 10000);        
+    } 
+    
+    componentWillUnmount(){
+        clearInterval(this.ticker)
+    }
 
     async getStats(){
         await getStats().then(ret => {

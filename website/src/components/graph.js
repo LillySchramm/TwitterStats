@@ -34,6 +34,10 @@ class Graph extends React.Component {
         }, 100);        
     }    
 
+    componentWillUnmount(){
+        clearInterval(this.ticker)
+    }
+
     async getData(){
         let d = window.location.href;
         d = d.split("/");

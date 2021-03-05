@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const tools = require('../tools/tools');
-var isBase64 = require('is-base64');
 
 var datetime = require('node-datetime');
 
@@ -16,6 +15,7 @@ const sql = require('../sql/mysql');
 var cache = {}
 
 router.get('/:type/:search', async (req, res, next) => {
+    try{
     search = req.params.search;
     type = req.params.type;
     search = tools.cleanSearch(search)
@@ -70,6 +70,7 @@ router.get('/:type/:search', async (req, res, next) => {
         search: search,
         timestamps: timestamps
     });
+    }catch{}    
 });
 
 
