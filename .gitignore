@@ -1,4 +1,7 @@
+*/venv/*
+crawler/twitt.py
+crawler/twitt.py
+crawler/main.py~
+api/node_modules/*
 venv/*
-api/twitt.py
-api/twitt.py
-api/main.py~
+website/public/*
