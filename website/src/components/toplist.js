@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Link } from 'react-router-dom';
 
 import '../api/api';
 import { getToplist } from '../api/api';
@@ -20,13 +21,17 @@ class TopListRow extends React.Component {
     }   
 
     render(){
+        
+        let prefix = this.props.name.startsWith("@") ? "tag" : "hashtag"
+        let link = "/history/" + prefix + "/" + this.props.name.substring(1)
+
         return(
             <tr>
                 <td>
                     {this.props.id}
                 </td>
                 <td>
-                    {this.props.name}
+                    <Link to={link}>{this.props.name}</Link> 
                 </td>
                 <td>
                     {this.props.count}

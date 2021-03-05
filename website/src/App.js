@@ -76,6 +76,7 @@ class Site_GRAPH extends React.Component{
 
     let type = d[d.length - 2]
     let search = d[d.length - 1];
+    search = decodeURI(search)
 
     let prefix = type == "tag" ? "@" : "#"
 
