@@ -146,3 +146,10 @@ table{
     background-color: black;
     border-color: white;
 }
+
+.graph{
+    width: 1100px; 
+    height: 550px;
+    display: block;
+    margin: 0 auto;
+}

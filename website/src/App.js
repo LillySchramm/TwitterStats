@@ -16,8 +16,25 @@ class Site_GRAPH extends React.Component{
   }
 
   render(){
+
+    let d = window.location.href;
+    d = d.split("/");
+
+    let type = d[d.length - 2]
+    let search = d[d.length - 1];
+
+    let prefix = type == "tag" ? "@" : "#"
+
     return(
-      <Graph />
+      <span>
+        <br />
+        <br />
+        <br />
+        <h2>The recorded history of '{prefix + search}'.</h2>
+        <Graph />
+
+      </span>
+      
     );
   }
 
